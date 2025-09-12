@@ -1,0 +1,1064 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Agri Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .metric-card { @apply bg-white rounded-lg shadow-md p-6 border-l-4; }
+        .metric-card.yellow { @apply border-yellow-500; }
+        .metric-card.green { @apply border-green-500; }
+        .metric-card.red { @apply border-red-500; }
+        .metric-card.blue { @apply border-blue-500; }
+        .metric-value { @apply text-3xl font-bold mt-2; }
+        .metric-label { @apply text-sm text-gray-600 font-medium; }
+        .metric-subtitle { @apply text-xs text-gray-500 mt-1; }
+        canvas { max-height: 300px; }
+        .log-entry { @apply text-sm text-gray-600 py-1 border-b border-gray-100; }
+        .notification { @apply fixed top-4 right-4 z-50 max-w-sm w-full bg-white rounded-lg shadow-lg border-l-4 p-4 transform transition-all duration-300 ease-in-out; }
+        .notification.success { @apply border-green-500; }
+        .notification.warning { @apply border-yellow-500; }
+        .notification.error { @apply border-red-500; }
+        .notification.info { @apply border-blue-500; }
+        .notification.hidden { @apply translate-x-full opacity-0; }
+        .notification-bell { @apply relative cursor-pointer text-gray-600 hover:text-gray-900; }
+        .notification-badge { @apply absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-blue-500">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">AI-Powered Agri Platform</h1>
+                <p class="text-gray-600">Real-time Crop Monitoring & Insights</p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="username" name="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 font-medium">Login</button>
+            </form>
+        </div>
+        </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="min-h-screen bg-gray-50 hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">AI-Powered Agri Platform</h1>
+                        <p class="text-sm text-gray-600">Real-time Crop Monitoring & Insights</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="notification-bell" id="notification-bell">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <div class="notification-badge hidden" id="notification-badge">0</div>
+                        </div>
+                        <button id="logout-btn" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Logout</button>
+                    </div>
+                </div>
+            </div>
+            </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Insurance Management Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Insurance & Risk Management</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button onclick="showInsuranceTypes()" class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition flex items-center justify-center">
+                        <span class="mr-2">📋</span>
+                        Insurance Types
+                    </button>
+                    <button onclick="showPremiumCalculator()" class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition flex items-center justify-center">
+                        <span class="mr-2">💰</span>
+                        Premium Calculator
+                    </button>
+                    <button onclick="showCalamityAlerts()" class="bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600 transition flex items-center justify-center">
+                        <span class="mr-2">⚠️</span>
+                        Calamity Alerts
+                    </button>
+                    <button onclick="showFeasibilityAnalysis()" class="bg-purple-500 text-white px-4 py-3 rounded-lg hover:bg-purple-600 transition flex items-center justify-center">
+                        <span class="mr-2">📊</span>
+                        Feasibility Analysis
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <button onclick="showPrivacySettings()" class="bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition flex items-center justify-center">
+                        <span class="mr-2">🔒</span>
+                        Privacy Settings
+                    </button>
+                    <button onclick="showClaimFiling()" class="bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition flex items-center justify-center">
+                        <span class="mr-2">📝</span>
+                        File Claim
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Soil Condition Card -->
+                <div class="metric-card yellow">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Soil Condition</h3>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Simulated sensor data</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="metric-value text-blue-600" id="moisture-level">31%</div>
+                            <div class="metric-label">Moisture</div>
+                        </div>
+                        <div>
+                            <div class="metric-value text-orange-600" id="temperature">28.3°C</div>
+                            <div class="metric-label">Temperature</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Crop Health Card -->
+                <div class="metric-card green">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Crop Health</h3>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Real-time spectral insights</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="metric-value text-green-600" id="ndvi-value">0.82</div>
+                            <div class="metric-label">NDVI Index</div>
+                        </div>
+                        <div>
+                            <div class="metric-value text-green-600" id="health-status">Healthy</div>
+                            <div class="metric-label">Health Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI-Driven Risk Card -->
+                <div class="metric-card red">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">AI-Driven Risk</h3>
+                        <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Predicted pest & insurance risk</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="metric-value text-purple-600" id="humidity">80%</div>
+                            <div class="metric-label">Humidity</div>
+                        </div>
+                        <div>
+                            <div class="metric-value text-red-600" id="insurance-risk">Low</div>
+                            <div class="metric-label">Insurance Risk</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NDVI Trend Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">NDVI Trend Analysis</h3>
+                <canvas id="ndviChart"></canvas>
+            </div>
+
+            <!-- Live Data Feed -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Live Data Feed</h3>
+                <div id="live-feed" class="max-h-48 overflow-y-auto space-y-1">
+                    <div class="log-entry">[10:44:21 am] Dashboard updated with real-time data.</div>
+                    <div class="log-entry">[10:44:21 am] Fetching real-time data from backend server...</div>
+                    <div class="log-entry">[10:43:51 am] Dashboard updated with real-time data.</div>
+                    <div class="log-entry">[10:43:51 am] Fetching real-time data from backend server...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2">    </div>
+
+    <!-- Insurance Modals -->
+    <!-- Insurance Types Modal -->
+    <div id="insurance-types-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Available Insurance Types</h3>
+                        <button onclick="hideInsuranceTypes()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div id="insurance-types-content" class="space-y-4">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Calculator Modal -->
+    <div id="premium-calculator-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Premium Calculator</h3>
+                        <button onclick="hidePremiumCalculator()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <form id="premium-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Insurance Type</label>
+                            <select id="insurance-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Insurance Type</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Crop Value (INR)</label>
+                            <input type="number" id="crop-value" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter crop value">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Risk Factors</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="high-risk-area" class="mr-2">
+                                    <span class="text-sm">High Risk Area</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="previous-claims" class="mr-2">
+                                    <span class="text-sm">Previous Claims (>2)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="high-risk-crop" class="mr-2">
+                                    <span class="text-sm">High Risk Crop Type</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" onclick="calculatePremium()" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Calculate Premium
+                        </button>
+                    </form>
+                    <div id="premium-result" class="mt-4 hidden">
+                        <!-- Results will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calamity Alerts Modal -->
+    <div id="calamity-alerts-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Calamity Alerts</h3>
+                        <button onclick="hideCalamityAlerts()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div id="calamity-alerts-content">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feasibility Analysis Modal -->
+    <div id="feasibility-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Feasibility Analysis for Local Farmers</h3>
+                        <button onclick="hideFeasibilityAnalysis()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div id="feasibility-content">
+                        <!-- Content will be loaded here -->
+                    </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+    <!-- Privacy Settings Modal -->
+    <div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Privacy Settings</h3>
+                        <button onclick="hidePrivacySettings()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Data Sharing</span>
+                            <input type="checkbox" id="data-sharing" class="toggle-checkbox">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Analytics</span>
+                            <input type="checkbox" id="analytics" class="toggle-checkbox" checked>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Third Party Access</span>
+                            <input type="checkbox" id="third-party" class="toggle-checkbox">
+                        </div>
+                        <div class="flex space-x-4 mt-6">
+                            <button onclick="updatePrivacySettings()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                Save Settings
+                            </button>
+                            <button onclick="exportData()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                                Export Data
+                            </button>
+                            <button onclick="deleteData()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                                Delete Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+                    </div>
+                </div>
+
+    <!-- Claim Filing Modal -->
+    <div id="claim-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">File Insurance Claim</h3>
+                        <button onclick="hideClaimFiling()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <form id="claim-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Policy ID</label>
+                            <input type="text" id="policy-id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter policy ID">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Calamity Type</label>
+                            <select id="calamity-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Calamity Type</option>
+                                <option value="drought">Drought</option>
+                                <option value="flood">Flood</option>
+                                <option value="pest_attack">Pest Attack</option>
+                                <option value="disease">Disease</option>
+                                <option value="hailstorm">Hailstorm</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Damage Percentage</label>
+                            <input type="number" id="damage-percentage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter damage percentage" min="0" max="100">
+                        </div>
+                        <button type="button" onclick="submitClaim()" class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600">
+                            Submit Claim
+                        </button>
+                    </form>
+                    <div id="claim-result" class="mt-4 hidden">
+                        <!-- Results will be shown here -->
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let ndviChart;
+        let isAuthenticated = false;
+        let notifications = [];
+        let notificationCount = 0;
+
+        // Login functionality
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('Login attempt:', { username, password });
+            
+            if (username && password) {
+                isAuthenticated = true;
+                console.log('Authentication successful, switching views...');
+                toggleViews();
+                showNotification('Welcome to AI-Powered Agri Platform! Dashboard loaded successfully.', 'success', 4000);
+                fetchAgriData();
+            } else {
+                showNotification('Please enter both username and password', 'warning', 3000);
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            isAuthenticated = false;
+            toggleViews();
+        });
+
+        // Toggle between login and dashboard
+        function toggleViews() {
+        const loginPage = document.getElementById('login-page');
+        const dashboardPage = document.getElementById('dashboard-page');
+            
+            console.log('toggleViews called, isAuthenticated:', isAuthenticated);
+            
+            if (isAuthenticated) {
+                console.log('Showing dashboard, hiding login');
+                loginPage.classList.add('hidden');
+                dashboardPage.classList.remove('hidden');
+            } else {
+                console.log('Showing login, hiding dashboard');
+                loginPage.classList.remove('hidden');
+                dashboardPage.classList.add('hidden');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icon = getNotificationIcon(type);
+            notification.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        ${icon}
+                    </div>
+                    <div class="ml-3 w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-900">${message}</p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.parentElement.parentElement.parentElement.remove()">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, duration);
+            
+            // Play notification sound
+            playNotificationSound(type);
+            
+            // Add to notifications array
+            notifications.push({
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            });
+            
+            updateNotificationBadge();
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                success: '<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>',
+                warning: '<svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>',
+                error: '<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>',
+                info: '<svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>'
+            };
+            return icons[type] || icons.info;
+        }
+
+        function playNotificationSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            const frequencies = {
+                success: 800,
+                warning: 600,
+                error: 400,
+                info: 500
+            };
+            
+            oscillator.frequency.setValueAtTime(frequencies[type] || 500, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notification-badge');
+            notificationCount = notifications.length;
+            
+            if (notificationCount > 0) {
+                badge.textContent = notificationCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function checkForAlerts(data) {
+            if (!data) return;
+            
+            // Check for critical health status
+            if (data.prediction && data.prediction.health_status === 'Critical') {
+                showNotification('Critical: Crop health is in critical condition! Immediate attention required.', 'error', 8000);
+            } else if (data.prediction && data.prediction.health_status === 'Stressed') {
+                showNotification('Warning: Crop health is stressed. Monitor closely.', 'warning', 6000);
+            }
+            
+            // Check for high risk zone
+            if (data.prediction && data.prediction.risk_zone === 'High') {
+                showNotification('High Risk Zone: Pest risk detected. Consider preventive measures.', 'warning', 6000);
+            }
+            
+            // Check for high insurance risk
+            if (data.prediction && data.prediction.insurance_risk === 'High') {
+                showNotification('High Insurance Risk: Consider reviewing insurance coverage.', 'warning', 6000);
+            }
+            
+            // Check for extreme temperatures
+            if (data.sensor_data && data.sensor_data.air_temperature > 35) {
+                showNotification('High Temperature Alert: Temperature exceeds 35°C. Monitor crop stress.', 'warning', 5000);
+            }
+            
+            // Check for low soil moisture
+            if (data.sensor_data && data.sensor_data.soil_moisture < 30) {
+                showNotification('Low Soil Moisture: Consider irrigation. Moisture below 30%.', 'info', 5000);
+            }
+            
+            // Check for high humidity
+            if (data.sensor_data && data.sensor_data.air_humidity > 85) {
+                showNotification('High Humidity Alert: Risk of fungal diseases. Monitor crop health.', 'warning', 5000);
+            }
+        }
+
+        // Fetch agricultural data from backend
+        async function fetchAgriData() {
+            try {
+                console.log('Fetching real-time data from backend server...');
+                addLogEntry('Fetching real-time data from backend server...');
+                
+                const response = await fetch('http://127.0.0.1:5000/api/data');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                updateDashboard(data);
+                addLogEntry('Dashboard updated with real-time data.');
+                
+                // Check for alerts and show notifications
+                checkForAlerts(data);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                addLogEntry(`Error fetching data: ${error.message}`);
+                showNotification('Error fetching data: ' + error.message + '. Check that the backend is running.', 'error', 8000);
+            }
+        }
+
+        // Update dashboard with new data
+        function updateDashboard(data) {
+            // Update soil condition metrics
+            if (data.sensor_data) {
+                document.getElementById('moisture-level').textContent = Math.round(data.sensor_data.soil_moisture) + '%';
+                document.getElementById('temperature').textContent = data.sensor_data.air_temperature.toFixed(1) + '°C';
+                document.getElementById('humidity').textContent = Math.round(data.sensor_data.air_humidity) + '%';
+            }
+            
+            // Update crop health metrics
+            if (data.satellite_data) {
+            document.getElementById('ndvi-value').textContent = data.satellite_data.ndvi.toFixed(2);
+            }
+            
+            // Update AI predictions
+            if (data.prediction) {
+            document.getElementById('health-status').textContent = data.prediction.health_status;
+            document.getElementById('insurance-risk').textContent = data.prediction.insurance_risk;
+            }
+            
+            // Update NDVI chart
+            updateNDVIChart(data);
+        }
+
+        // Update NDVI chart with new data
+        function updateNDVIChart(data) {
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString();
+            
+            if (ndviChart) {
+                ndviChart.data.labels.push(timeLabel);
+                ndviChart.data.datasets[0].data.push(data.satellite_data.ndvi);
+                
+                // Keep only last 10 data points
+                if (ndviChart.data.labels.length > 10) {
+                    ndviChart.data.labels.shift();
+                    ndviChart.data.datasets[0].data.shift();
+                }
+                
+                ndviChart.update();
+            }
+        }
+
+        // Add log entry to live feed
+        function addLogEntry(message) {
+            const liveFeed = document.getElementById('live-feed');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${timeString}] ${message}`;
+            
+            liveFeed.insertBefore(logEntry, liveFeed.firstChild);
+            
+            // Keep only last 20 entries
+            while (liveFeed.children.length > 20) {
+                liveFeed.removeChild(liveFeed.lastChild);
+            }
+        }
+
+        // Initialize NDVI chart
+        function initializeNDVIChart() {
+            const ndviCtx = document.getElementById('ndviChart').getContext('2d');
+            ndviChart = new Chart(ndviCtx, {
+                        type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'NDVI',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1.0
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                        }
+                    });
+                }
+
+        // Insurance Management Functions
+        function showInsuranceTypes() {
+            document.getElementById('insurance-types-modal').classList.remove('hidden');
+            fetchInsuranceTypes();
+        }
+        function hideInsuranceTypes() { document.getElementById('insurance-types-modal').classList.add('hidden'); }
+        function showPremiumCalculator() {
+            document.getElementById('premium-calculator-modal').classList.remove('hidden');
+            loadInsuranceTypes();
+        }
+        function hidePremiumCalculator() { document.getElementById('premium-calculator-modal').classList.add('hidden'); }
+        function showCalamityAlerts() {
+            document.getElementById('calamity-alerts-modal').classList.remove('hidden');
+            loadCalamityAlerts();
+        }
+        function hideCalamityAlerts() { document.getElementById('calamity-alerts-modal').classList.add('hidden'); }
+        function showFeasibilityAnalysis() {
+            document.getElementById('feasibility-modal').classList.remove('hidden');
+            loadFeasibilityAnalysis();
+        }
+        function hideFeasibilityAnalysis() { document.getElementById('feasibility-modal').classList.add('hidden'); }
+        function showPrivacySettings() {
+            document.getElementById('privacy-modal').classList.remove('hidden');
+            loadPrivacySettings();
+        }
+        function hidePrivacySettings() { document.getElementById('privacy-modal').classList.add('hidden'); }
+        function showClaimFiling() {
+            document.getElementById('claim-modal').classList.remove('hidden');
+        }
+        function hideClaimFiling() { document.getElementById('claim-modal').classList.add('hidden'); }
+
+        async function fetchInsuranceTypes() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/insurance/types');
+                const data = await response.json();
+                displayInsuranceTypes(data);
+            } catch (error) {
+                showNotification('Error loading insurance types', 'error');
+            }
+        }
+
+        function displayInsuranceTypes(types) {
+            const content = document.getElementById('insurance-types-content');
+            content.innerHTML = Object.entries(types).map(([key, type]) => `
+                <div class="bg-gray-50 rounded-lg p-4 border">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">${type.name}</h4>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <p><strong>Coverage:</strong> ${type.coverage.join(', ')}</p>
+                        <p><strong>Premium Rate:</strong> ${(type.premium_rate * 100).toFixed(1)}% of crop value</p>
+                        <p><strong>Coverage Range:</strong> ₹${type.min_coverage.toLocaleString()} - ₹${type.max_coverage.toLocaleString()}</p>
+                        <p><strong>Deductible:</strong> ${(type.deductible * 100).toFixed(0)}%</p>
+                        <div class="mt-3">
+                            <strong>Terms & Conditions:</strong>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                ${type.terms.map(term => `<li>${term}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadInsuranceTypes() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/insurance/types');
+                const data = await response.json();
+                const select = document.getElementById('insurance-type');
+                select.innerHTML = '<option value="">Select Insurance Type</option>';
+                Object.entries(data).forEach(([key, type]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = type.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading insurance types:', error);
+            }
+        }
+
+        async function calculatePremium() {
+            const insuranceType = document.getElementById('insurance-type').value;
+            const cropValue = parseFloat(document.getElementById('crop-value').value);
+            if (!insuranceType || !cropValue) {
+                showNotification('Please fill all required fields', 'warning');
+                return;
+            }
+            const riskFactors = {
+                high_risk_area: document.getElementById('high-risk-area').checked,
+                previous_claims: document.getElementById('previous-claims').checked,
+                crop_type_risk: document.getElementById('high-risk-crop').checked ? 'high' : 'low'
+            };
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/insurance/calculate-premium', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: insuranceType, crop_value: cropValue, risk_factors: riskFactors })
+                });
+                const data = await response.json();
+                displayPremiumResult(data);
+            } catch (error) {
+                showNotification('Error calculating premium', 'error');
+            }
+        }
+
+        function displayPremiumResult(data) {
+            const resultDiv = document.getElementById('premium-result');
+            resultDiv.innerHTML = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="text-lg font-semibold text-green-800 mb-3">Premium Calculation Result</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="text-gray-600">Premium Amount:</span><span class="font-semibold text-green-600">₹${data.premium.toLocaleString()}</span></div>
+                        <div><span class="text-gray-600">Coverage Amount:</span><span class="font-semibold">₹${data.coverage_amount.toLocaleString()}</span></div>
+                        <div><span class="text-gray-600">Deductible:</span><span class="font-semibold">₹${data.deductible.toLocaleString()}</span></div>
+                        <div><span class="text-gray-600">Net Payout:</span><span class="font-semibold text-blue-600">₹${data.net_payout.toLocaleString()}</span></div>
+                    </div>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+        }
+
+        async function loadCalamityAlerts() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/calamities');
+                const data = await response.json();
+                displayCalamityAlerts(data);
+            } catch (error) {
+                showNotification('Error loading calamity alerts', 'error');
+            }
+        }
+
+        function displayCalamityAlerts(calamities) {
+            const content = document.getElementById('calamity-alerts-content');
+            if (calamities.length === 0) {
+                content.innerHTML = '<p class="text-gray-500 text-center py-8">No recent calamity alerts</p>';
+                return;
+            }
+            content.innerHTML = calamities.map(calamity => `
+                <div class="border rounded-lg p-4 mb-3 ${getSeverityColor(calamity.severity)}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${calamity.type.toUpperCase()}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${calamity.description}</p>
+                            <p class="text-xs text-gray-500 mt-2">${new Date(calamity.timestamp).toLocaleString()}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs font-medium ${getSeverityBadge(calamity.severity)}">${calamity.severity.toUpperCase()}</span>
+                    </div>
+                    ${calamity.recommended_action ? `<div class="mt-3 p-2 bg-blue-50 rounded text-sm"><strong>Recommended Action:</strong> ${calamity.recommended_action}</div>` : ''}
+                    <div class="mt-3">
+                        <button onclick="loadRecoveryGuidelines('${calamity.type}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            View Recovery Guidelines
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadRecoveryGuidelines(calamityType) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/api/recovery/guidelines/${calamityType}`);
+                const data = await response.json();
+                displayRecoveryGuidelines(data, calamityType);
+            } catch (error) {
+                showNotification('Error loading recovery guidelines', 'error');
+            }
+        }
+
+        function displayRecoveryGuidelines(data, calamityType) {
+            if (!data.success) {
+                showNotification(data.error, 'error');
+                return;
+            }
+            
+            const guidelines = data.guidelines;
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50';
+            modal.innerHTML = `
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-2xl font-bold text-gray-800">Recovery Guidelines - ${calamityType.toUpperCase()}</h3>
+                                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-green-600 mb-2">Prevention (Immediate)</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        ${guidelines.prevention.immediate.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-green-600 mb-2">Prevention (Long-term)</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        ${guidelines.prevention.long_term.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-red-600 mb-2">Immediate Response</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        ${guidelines.immediate_response.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-blue-600 mb-2">Recovery</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        ${guidelines.recovery.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-purple-600 mb-2">Financial Aid</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                        ${guidelines.financial_aid.map(item => `<li>${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function getSeverityColor(severity) {
+            switch(severity) {
+                case 'high': return 'border-red-200 bg-red-50';
+                case 'moderate': return 'border-yellow-200 bg-yellow-50';
+                case 'low': return 'border-green-200 bg-green-50';
+                default: return 'border-gray-200 bg-gray-50';
+            }
+        }
+
+        function getSeverityBadge(severity) {
+            switch(severity) {
+                case 'high': return 'bg-red-100 text-red-800';
+                case 'moderate': return 'bg-yellow-100 text-yellow-800';
+                case 'low': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        async function loadFeasibilityAnalysis() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/feasibility/analysis');
+                const data = await response.json();
+                displayFeasibilityAnalysis(data);
+            } catch (error) {
+                showNotification('Error loading feasibility analysis', 'error');
+            }
+        }
+
+        function displayFeasibilityAnalysis(data) {
+            const content = document.getElementById('feasibility-content');
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-blue-800 mb-3">Cost-Benefit Analysis</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div><span class="text-gray-600">Avg Premium:</span><div class="font-semibold">₹${data.cost_benefit.average_premium.toLocaleString()}/acre</div></div>
+                            <div><span class="text-gray-600">Avg Payout:</span><div class="font-semibold text-green-600">₹${data.cost_benefit.average_claim_payout.toLocaleString()}/acre</div></div>
+                            <div><span class="text-gray-600">ROI:</span><div class="font-semibold text-blue-600">${data.cost_benefit.roi_percentage}%</div></div>
+                            <div><span class="text-gray-600">Break-even:</span><div class="font-semibold">${data.cost_benefit.break_even_months} months</div></div>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-green-800 mb-3">Benefits</h4>
+                            <ul class="space-y-2 text-sm">${data.benefits.map(benefit => `<li class="flex items-center"><span class="text-green-500 mr-2">✓</span>${benefit}</li>`).join('')}</ul>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-yellow-800 mb-3">Challenges</h4>
+                            <ul class="space-y-2 text-sm">${data.challenges.map(challenge => `<li class="flex items-center"><span class="text-yellow-500 mr-2">⚠</span>${challenge}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-purple-800 mb-3">Government Support</h4>
+                        <div class="grid md:grid-cols-3 gap-4 text-sm">
+                            <div><span class="text-gray-600">Subsidy:</span><div class="font-semibold text-purple-600">${data.government_support.subsidy_percentage}%</div></div>
+                            <div><span class="text-gray-600">Schemes:</span><div class="font-semibold">${data.government_support.schemes.join(', ')}</div></div>
+                            <div><span class="text-gray-600">Settlement:</span><div class="font-semibold">${data.government_support.claim_settlement_days} days</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadPrivacySettings() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/privacy/settings');
+                const data = await response.json();
+                document.getElementById('data-sharing').checked = data.data_sharing;
+                document.getElementById('analytics').checked = data.analytics;
+                document.getElementById('third-party').checked = data.third_party;
+            } catch (error) {
+                console.error('Error loading privacy settings:', error);
+            }
+        }
+
+        async function updatePrivacySettings() {
+            const settings = {
+                data_sharing: document.getElementById('data-sharing').checked,
+                analytics: document.getElementById('analytics').checked,
+                third_party: document.getElementById('third-party').checked
+            };
+            try {
+                await fetch('http://127.0.0.1:5000/api/privacy/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                showNotification('Privacy settings updated successfully', 'success');
+            } catch (error) {
+                showNotification('Error updating privacy settings', 'error');
+            }
+        }
+
+        async function exportData() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/privacy/data-export?farmer_id=user123');
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'farmer_data_export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('Data exported successfully', 'success');
+            } catch (error) {
+                showNotification('Error exporting data', 'error');
+            }
+        }
+
+        async function deleteData() {
+            if (!confirm('Are you sure you want to delete all your data? This action cannot be undone.')) return;
+            try {
+                await fetch('http://127.0.0.1:5000/api/privacy/data-delete?farmer_id=user123', { method: 'DELETE' });
+                showNotification('Data deleted successfully', 'success');
+            } catch (error) {
+                showNotification('Error deleting data', 'error');
+            }
+        }
+
+        async function submitClaim() {
+            const policyId = document.getElementById('policy-id').value;
+            const calamityType = document.getElementById('calamity-type').value;
+            const damagePercentage = parseFloat(document.getElementById('damage-percentage').value);
+            if (!policyId || !calamityType || !damagePercentage) {
+                showNotification('Please fill all required fields', 'warning');
+                return;
+            }
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/insurance/claim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ policy_id: policyId, calamity_type: calamityType, damage_percentage: damagePercentage })
+                });
+                const data = await response.json();
+                displayClaimResult(data);
+            } catch (error) {
+                showNotification('Error submitting claim', 'error');
+            }
+        }
+
+        function displayClaimResult(data) {
+            const resultDiv = document.getElementById('claim-result');
+            if (data.eligible === false) {
+                resultDiv.innerHTML = `<div class="bg-red-50 border border-red-200 rounded-lg p-4"><h4 class="text-lg font-semibold text-red-800 mb-2">Claim Not Eligible</h4><p class="text-red-600">${data.error}</p></div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="bg-green-50 border border-green-200 rounded-lg p-4"><h4 class="text-lg font-semibold text-green-800 mb-2">Claim Submitted Successfully</h4><div class="space-y-2 text-sm"><div><strong>Claim ID:</strong> ${data.claim_id}</div><div><strong>Status:</strong> <span class="text-green-600 font-semibold">${data.status}</span></div><div><strong>Claim Amount:</strong> <span class="text-blue-600 font-semibold">₹${data.claim_amount.toLocaleString()}</span></div><div><strong>Submitted:</strong> ${new Date(data.filed_at).toLocaleString()}</div></div></div>`;
+            }
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNDVIChart();
+            
+            // Fetch data every 30 seconds
+            setInterval(() => {
+                if (isAuthenticated) {
+                    fetchAgriData();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,55 @@
+#! database-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: database
+    namespace: agricultural-ai-backend
+    labels:
+        com.docker.compose.project: agricultural-ai-backend
+        com.docker.compose.service: database
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: agricultural-ai-backend
+            com.docker.compose.service: database
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: agricultural-ai-backend
+                com.docker.compose.service: database
+                com.docker.compose.network.agri_network: "true"
+        spec:
+            containers:
+                - name: agri-database
+                  image: timescale/timescaledb:latest-pg15
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DB_PASSWORD
+                      value: "TUSHITA"
+                    - name: POSTGRES_DB
+                      value: "agricultural_ai"
+                    - name: POSTGRES_PASSWORD
+                      value: "TUSHITA"
+                    - name: POSTGRES_USER
+                      value: "agri_user"
+                    - name: TIMESCALEDB_TELEMETRY
+                      value: "off"
+                  ports:
+                    - name: database-5432
+                      containerPort: 5432
+                  volumeMounts:
+                    - name: var-lib-postgresql-data
+                      mountPath: /var/lib/postgresql/data
+                    - name: docker-entrypoint-initdb-d-init-sql
+                      mountPath: /docker-entrypoint-initdb.d/init.sql
+            volumes:
+                - name: var-lib-postgresql-data
+                  persistentVolumeClaim:
+                    claimName: database-postgres-data
+                - name: docker-entrypoint-initdb-d-init-sql
+                  hostPath:
+                    path: C:\Users\Tushita Pandey\OneDrive\Desktop\SIH\agricultural-ai-backend\database\init.sql

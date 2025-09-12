@@ -1,0 +1,8 @@
+#! 0-agricultural-ai-backend-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: agricultural-ai-backend
+    labels:
+        com.docker.compose.project: agricultural-ai-backend

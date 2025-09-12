@@ -1,0 +1,18 @@
+ fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+alembic
+psycopg2-binary
+asyncpg
+tensorflow
+scikit-learn
+numpy
+pandas
+rasterio
+geopandas
+fiona
+shapely
+pyproj
+Flask
+requests

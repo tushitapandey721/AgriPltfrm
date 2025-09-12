@@ -1,0 +1,9 @@
+#! database-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: database-published
+    namespace: agricultural-ai-backend
+spec:
+    type: LoadBalancer

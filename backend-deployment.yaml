@@ -1,0 +1,42 @@
+#! backend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend
+    namespace: agricultural-ai-backend
+    labels:
+        com.docker.compose.project: agricultural-ai-backend
+        com.docker.compose.service: backend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: agricultural-ai-backend
+            com.docker.compose.service: backend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: agricultural-ai-backend
+                com.docker.compose.service: backend
+                com.docker.compose.network.agri_network: "true"
+        spec:
+            containers:
+                - name: backend
+                  image: agricultural-ai-backend-backend
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DB_PASSWORD
+                      value: "TUSHITA"
+                  ports:
+                    - name: backend-5000
+                      containerPort: 5000
+                  volumeMounts:
+                    - name: app
+                      mountPath: /app
+            volumes:
+                - name: app
+                  hostPath:
+                    path: C:\Users\Tushita Pandey\OneDrive\Desktop\SIH\agricultural-ai-backend

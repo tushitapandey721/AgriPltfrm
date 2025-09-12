@@ -1,0 +1,18 @@
+#! database-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: database
+    namespace: agricultural-ai-backend
+    labels:
+        com.docker.compose.project: agricultural-ai-backend
+        com.docker.compose.service: database
+spec:
+    selector:
+        com.docker.compose.project: agricultural-ai-backend
+        com.docker.compose.service: database
+    ports:
+        - name: database-5432
+          port: 5432
+          targetPort: database-5432
